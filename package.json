@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "homepage": "https://Celliottiste.github.io/CryptoRatioInsights/",
+  "homepage": "https://celliottiste.github.io/CryptoRatioInsights/",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

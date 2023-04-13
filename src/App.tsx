@@ -32,7 +32,7 @@ const App: React.FC = () => {
 
     return (
         <Container>
-            <img className="profile-picture" src="/profile_picture.jpg" alt="Profile" />
+            <img className="profile-picture" src="/CryptoRatioInsights/profile_picture.jpg" alt="Profile" />
             <Segment style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Search
                         loading={loading}
