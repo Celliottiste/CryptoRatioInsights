@@ -94,7 +94,8 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
     };
 
     return (
-        <div ref={chartContainerRef}>
+        <>
+        <div ref={chartContainerRef} style={{marginTop:20}}>
             <Segment>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h1>{symbol}</h1>
