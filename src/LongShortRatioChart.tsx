@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchLongShortRatios, LongShortRatio } from './binance-api';
-import { Loader, Segment, ButtonGroup, Button } from 'semantic-ui-react';
-import htmlToImage from 'html-to-image';
+import { Loader, Segment,  Button, Icon } from 'semantic-ui-react';
+import * as htmlToImage from 'html-to-image';
 
 interface LongShortRatioChartProps {
     symbol: string;
@@ -42,36 +42,67 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
         return `${hours}:${minutes}`;
     };
 
-    const exportAsPicture = async (download: boolean) => {
-        const container = chartContainerRef.current;
-        if (!container) return;
-        const dataUrl = await htmlToImage.toPng(container);
+    const filter = (node: HTMLElement) => {
+        // Show the Twitter handle
+        if (node.classList?.contains("twitter-handle")) {
+            node.style.display = "flex";
+        }
 
-        if (download) {
-            const link = document.createElement('a');
-            link.href = dataUrl;
-            link.download = `${symbol}.png`;
-            link.click();
-        } else {
-            try {
-                const dataUrlBlob = await fetch(dataUrl).then((res) => res.blob());
-                await navigator.clipboard.write([
-                    new ClipboardItem({
-                        [dataUrlBlob.type]: dataUrlBlob,
-                    }),
-                ]);
-                alert('Image copied to clipboard');
-            } catch (error) {
-                console.error('Failed to copy image to clipboard', error);
-                alert('Failed to copy image to clipboard');
+        // Exclude the 'chart-buttons' class
+        const exclusionClasses = ['chart-buttons'];
+        return !exclusionClasses.some((classname) => node.classList?.contains(classname));
+    };
+
+
+    const exportAsPicture = async (download: boolean) => {
+        if (!chartContainerRef.current) return;
+
+        const container = chartContainerRef.current as HTMLDivElement;
+
+        try {
+            const dataUrl = await htmlToImage.toPng(container, { cacheBust: true, filter : filter });
+
+            // Hide the Twitter handle again
+            const twitterHandle = container.querySelector(".twitter-handle");
+            if (twitterHandle) {
+                (twitterHandle as HTMLElement).style.display = "flex";
             }
+
+
+            if (download) {
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = `${symbol}.png`;
+                link.click();
+            } else {
+                try {
+                    const dataUrlBlob = await fetch(dataUrl).then((res) => res.blob());
+                    await navigator.clipboard.write([
+                        new ClipboardItem({
+                            [dataUrlBlob.type]: dataUrlBlob,
+                        }),
+                    ]);
+                    alert('Image copied to clipboard');
+                } catch (error) {
+                    console.error('Failed to copy image to clipboard', error);
+                    alert('Failed to copy image to clipboard');
+                }
+            }
+        } catch (err) {
+            console.error('Failed to generate image', err);
         }
     };
 
     return (
         <div ref={chartContainerRef}>
             <Segment>
-                <h1>{symbol}</h1>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h1>{symbol}</h1>
+                    <div className={'chart-buttons'}>
+                        <Button icon="download" onClick={() => exportAsPicture(true)} />
+                        <Button icon="copy" onClick={() => exportAsPicture(false)} />
+                    </div>
+                </div>
                 {loading || data.length === 0 ? (
                     <Loader active inline="centered" size="small">
                         Loading data...
@@ -107,10 +138,12 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
                         </LineChart>
                     </ResponsiveContainer>
                 )}
-                <ButtonGroup>
-                    <Button icon="download" onClick={() => exportAsPicture(true)} />
-                    <Button icon="copy" onClick={() => exportAsPicture(false)} />
-                </ButtonGroup>
+                <div className="twitter-handle" style={{marginTop:20, display: "flex", justifyContent: "flex-end" }}>
+                    <a href="https://twitter.com/Celliottiste" target="_blank" rel="noopener noreferrer">
+                        <Icon className={"twitter-icon"} name="twitter" size="large" />
+                    </a>
+                    <span style={{ color: 'darkgreen' }}>@Celliottiste</span>
+                </div>
             </Segment>
         </div>
     );
