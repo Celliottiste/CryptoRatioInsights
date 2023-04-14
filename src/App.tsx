@@ -1,5 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import {Container, Segment, Search, Dimmer, Loader, Icon} from 'semantic-ui-react';
+import {FixedSizeList as List} from 'react-window';
 import { fetchAllSymbols, SymbolInfo } from './binance-api';
 import './App.css';
 
@@ -30,6 +31,17 @@ const App: React.FC = () => {
         setLoading(false);
     };
 
+    const Row = ({index, style}: {index: number, style: React.CSSProperties}) => {
+        const symbol = displayedSymbols[index];
+        return (
+            <div style={style}>
+                <Suspense fallback={<Dimmer active><Loader /></Dimmer>}>
+                    <LongShortRatioChart symbol={symbol.symbol} />
+                </Suspense>
+            </div>
+        );
+    };
+
     return (
         <Container>
             <img className="profile-picture" src="/CryptoRatioInsights/profile_picture.jpg" alt="Profile" />
@@ -55,6 +67,14 @@ const App: React.FC = () => {
                         <LongShortRatioChart symbol={symbol.symbol} />
                     </Suspense>
             ))}
+            <List
+                height={600}
+                itemCount={displayedSymbols.length}
+                itemSize={250}
+                width="100%"
+            >
+                {Row}
+            </List>
         </Container>
     );
 };

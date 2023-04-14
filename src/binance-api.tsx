@@ -15,7 +15,6 @@ export const fetchLongShortRatios = async (
     startTime?: number,
     endTime?: number,
 ): Promise<LongShortRatio[]> => {
-    console.log(symbol)
 
     const response = await axios.get('https://fapi.binance.com/futures/data/globalLongShortAccountRatio', {
         params: {
