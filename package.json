@@ -21,6 +21,7 @@
     "html-to-image" : "^1.11.11",
     "@types/file-saver": "^2.0.5",
     "@types/react-window": "^1.8.5",
+    "react-window":"^1.8.5",
     "gh-pages": "^5.0.0"
   },
   "devDependencies": {
