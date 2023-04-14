@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchLongShortRatios, LongShortRatio } from './binance-api';
 import { Loader, Segment, ButtonGroup, Button } from 'semantic-ui-react';
-import * as htmlToImage from 'html-to-image';
-import { saveAs } from 'file-saver';
+import htmlToImage from 'html-to-image';
 
 interface LongShortRatioChartProps {
     symbol: string;
@@ -43,11 +42,29 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
         return `${hours}:${minutes}`;
     };
 
-    const exportAsPicture = async () => {
-        const chartElement = chartContainerRef.current;
-        if (chartElement) {
-            const dataUrl = await htmlToImage.toPng(chartElement);
-            saveAs(dataUrl, `${symbol}_long_short_ratio.png`);
+    const exportAsPicture = async (download: boolean) => {
+        const container = chartContainerRef.current;
+        if (!container) return;
+        const dataUrl = await htmlToImage.toPng(container);
+
+        if (download) {
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = `${symbol}.png`;
+            link.click();
+        } else {
+            try {
+                const dataUrlBlob = await fetch(dataUrl).then((res) => res.blob());
+                await navigator.clipboard.write([
+                    new ClipboardItem({
+                        [dataUrlBlob.type]: dataUrlBlob,
+                    }),
+                ]);
+                alert('Image copied to clipboard');
+            } catch (error) {
+                console.error('Failed to copy image to clipboard', error);
+                alert('Failed to copy image to clipboard');
+            }
         }
     };
 
@@ -91,7 +108,8 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
                     </ResponsiveContainer>
                 )}
                 <ButtonGroup>
-                    <Button icon="download" onClick={exportAsPicture} />
+                    <Button icon="download" onClick={() => exportAsPicture(true)} />
+                    <Button icon="copy" onClick={() => exportAsPicture(false)} />
                 </ButtonGroup>
             </Segment>
         </div>
