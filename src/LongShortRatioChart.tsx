@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchLongShortRatios, LongShortRatio } from './binance-api';
-import { Loader, Segment,  Button, Icon } from 'semantic-ui-react';
+import {Loader, Segment, Button, Icon, Message} from 'semantic-ui-react';
 import * as htmlToImage from 'html-to-image';
 
 interface LongShortRatioChartProps {
@@ -12,6 +12,7 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
     const [data, setData] = useState<LongShortRatio[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const chartContainerRef = useRef(null);
+    const [showMessage, setShowMessage] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -24,6 +25,13 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
         const interval = setInterval(fetchData, 5 * 60000); // Update every minute
         return () => clearInterval(interval);
     }, [symbol]);
+
+    const displayFloatingMessage = () => {
+        setShowMessage(true);
+        setTimeout(() => {
+            setShowMessage(false);
+        }, 3000); // Change this value to adjust the duration of the message
+    };
 
     const handleAnimationEnd = () => {
         setLoading(false);
@@ -82,7 +90,7 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
                             [dataUrlBlob.type]: dataUrlBlob,
                         }),
                     ]);
-                    alert('Image copied to clipboard');
+                    displayFloatingMessage();
                 } catch (error) {
                     console.error('Failed to copy image to clipboard', error);
                     alert('Failed to copy image to clipboard');
@@ -147,6 +155,23 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
                 </div>
             </Segment>
         </div>
+            <Message
+                positive
+                floating
+                attached={false}
+                hidden={!showMessage}
+                onDismiss={() => setShowMessage(false)}
+                header="Success!"
+                content="Image copied to clipboard."
+                style={{
+                    transition: 'opacity 1s ease-in, bottom 1s ease-in',
+                    position: 'fixed',
+                    left: '50%',
+                    bottom: showMessage ? '50%' : '45%',
+                    transform: 'translateX(-50%)',
+                }}
+            />
+        </>
     );
 };
 
