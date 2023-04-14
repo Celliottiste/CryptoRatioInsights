@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchLongShortRatios, LongShortRatio } from './binance-api';
-import {Loader, Segment} from 'semantic-ui-react';
+import { Loader, Segment, ButtonGroup, Button } from 'semantic-ui-react';
+import * as htmlToImage from 'html-to-image';
+import { saveAs } from 'file-saver';
 
 interface LongShortRatioChartProps {
     symbol: string;
@@ -10,6 +12,7 @@ interface LongShortRatioChartProps {
 const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => {
     const [data, setData] = useState<LongShortRatio[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const chartContainerRef = useRef(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -19,7 +22,7 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
             setLoading(false);
         };
         fetchData();
-        const interval = setInterval(fetchData, 5*60000); // Update every minute
+        const interval = setInterval(fetchData, 5 * 60000); // Update every minute
         return () => clearInterval(interval);
     }, [symbol]);
 
@@ -40,45 +43,58 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
         return `${hours}:${minutes}`;
     };
 
+    const exportAsPicture = async () => {
+        const chartElement = chartContainerRef.current;
+        if (chartElement) {
+            const dataUrl = await htmlToImage.toPng(chartElement);
+            saveAs(dataUrl, `${symbol}_long_short_ratio.png`);
+        }
+    };
+
     return (
-        <Segment>
-            <h1>{symbol}</h1>
-            {loading || data.length == 0? (
-                <Loader active inline="centered" size="small">
-                    Loading data...
-                </Loader>
-            ) : (
-                <ResponsiveContainer width="100%" height={200}>
-                    <LineChart
-                        data={data}
-                        margin={{
-                            top: 5,
-                            right: 30,
-                            left: 20,
-                            bottom: 10,
-                        }}
-                    >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis
-                            dataKey="timestamp"
-                            tickFormatter={formatDate}
-                            angle={-45}
-                            textAnchor="end"
-                        />
-                        <YAxis />
-                        <Tooltip />
-                        <Line
-                            name={''}
-                            type="monotone"
-                            dataKey="longShortRatio"
-                            stroke={strokeColor()}
-                            dot={false}
-                            onTransitionEnd={handleAnimationEnd} // Add this prop
-                        />
-                    </LineChart>
-                </ResponsiveContainer>
-            )}
-        </Segment>
+        <div ref={chartContainerRef}>
+            <Segment>
+                <h1>{symbol}</h1>
+                {loading || data.length === 0 ? (
+                    <Loader active inline="centered" size="small">
+                        Loading data...
+                    </Loader>
+                ) : (
+                    <ResponsiveContainer width="100%" height={200}>
+                        <LineChart
+                            data={data}
+                            margin={{
+                                top: 5,
+                                right: 30,
+                                left: 20,
+                                bottom: 10,
+                            }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis
+                                dataKey="timestamp"
+                                tickFormatter={formatDate}
+                                angle={-45}
+                                textAnchor="end"
+                            />
+                            <YAxis />
+                            <Tooltip />
+                            <Line
+                                name={''}
+                                type="monotone"
+                                dataKey="longShortRatio"
+                                stroke={strokeColor()}
+                                dot={false}
+                                onTransitionEnd={handleAnimationEnd}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                )}
+                <ButtonGroup>
+                    <Button icon="download" onClick={exportAsPicture} />
+                </ButtonGroup>
+            </Segment>
+        </div>
     );
 };
 
