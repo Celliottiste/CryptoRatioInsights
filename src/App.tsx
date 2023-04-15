@@ -33,6 +33,7 @@ const App: React.FC = () => {
     return (
         <Container>
             <img className="profile-picture" src="/CryptoRatioInsights/profile_picture.jpg" alt="Profile" />
+            <h1>Crypto long short ratio screener</h1>
             <Segment style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Search
                         loading={loading}

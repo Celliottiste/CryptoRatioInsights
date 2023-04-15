@@ -106,7 +106,7 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
         <div ref={chartContainerRef} style={{marginBottom:20}}>
             <Segment>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h1>{symbol}</h1>
+                    <h3>{symbol}</h3>
                     <div className={'chart-buttons'}>
                         <Button icon="download" onClick={() => exportAsPicture(true)} />
                         <Button icon="copy" onClick={() => exportAsPicture(false)} />
