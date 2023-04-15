@@ -61,8 +61,40 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
         return !exclusionClasses.some((classname) => node.classList?.contains(classname));
     };
 
+    const shareImage = async () => {
+        if (!chartContainerRef.current) return;
 
-    const exportAsPicture = async (download: boolean) => {
+        const container = chartContainerRef.current as HTMLDivElement;
+
+        try {
+            const dataUrl = await htmlToImage.toPng(container, { cacheBust: true, filter: filter });
+
+            const dataUrlBlob = await fetch(dataUrl).then((res) => res.blob());
+
+            if (navigator.share) {
+                const file = new File([dataUrlBlob], `${symbol}.png`, {
+                    type: dataUrlBlob.type,
+                });
+
+                try {
+                    await navigator.share({
+                        title: `${symbol} Long Short Ratio Chart`,
+                        files: [file],
+                    });
+                } catch (err) {
+                    console.error("Sharing failed", err);
+                    alert("Sharing failed");
+                }
+            } else {
+                console.error("Web Share API not supported");
+                alert("Web Share API not supported");
+            }
+        } catch (err) {
+            console.error("Failed to generate image", err);
+        }
+    };
+
+    const exportAsPicture = async (share: boolean) => {
         if (!chartContainerRef.current) return;
 
         const container = chartContainerRef.current as HTMLDivElement;
@@ -77,11 +109,28 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
             }
 
 
-            if (download) {
-                const link = document.createElement('a');
-                link.href = dataUrl;
-                link.download = `${symbol}.png`;
-                link.click();
+            if (share) {
+                if (navigator.share) {
+                    const dataUrlBlob = await fetch(dataUrl).then((res) => res.blob());
+
+                    const file = new File([dataUrlBlob], `${symbol}.png`, {
+                        type: dataUrlBlob.type,
+                    });
+
+                    try {
+                        await navigator.share({
+                            title: `${symbol} Long Short Ratio Chart`,
+                            files: [file],
+                        });
+                    } catch (err) {
+                        console.error("Sharing failed", err);
+                        alert("Sharing failed");
+                    }
+                } else {
+                    console.error("Web Share API not supported");
+                    alert("Web Share API not supported");
+                }
+
             } else {
                 try {
                     const dataUrlBlob = await fetch(dataUrl).then((res) => res.blob());
@@ -108,8 +157,8 @@ const LongShortRatioChart: React.FC<LongShortRatioChartProps> = ({ symbol }) => 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3>{symbol}</h3>
                     <div className={'chart-buttons'}>
-                        <Button icon="download" onClick={() => exportAsPicture(true)} />
                         <Button icon="copy" onClick={() => exportAsPicture(false)} />
+                        <Button icon="share" onClick={() => exportAsPicture(true)} />
                     </div>
                 </div>
                 {loading || data.length === 0 ? (
